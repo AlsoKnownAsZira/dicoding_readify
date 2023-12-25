@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:readify/favoritebook.dart';
+import 'package:readify/openbook.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -99,6 +101,23 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
         backgroundColor: const Color.fromARGB(255, 254, 217, 237),
         appBar: AppBar(
+          actions: [
+            IconButton(
+                onPressed: () {
+                  List<Map<String, dynamic>> favoriteItems =
+                      items.where((item) => item['isFavorited']).toList();
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => FavoriteBook(
+                                favoriteItems: favoriteItems,
+                              )));
+                },
+                icon: const Icon(
+                  Icons.favorite_border,
+                  color: Colors.white,
+                ))
+          ],
           title: const Text(
             'Readify',
             style: TextStyle(color: Colors.white),
@@ -111,53 +130,68 @@ class _HomePageState extends State<HomePage> {
                 crossAxisCount: 2, crossAxisSpacing: 4, mainAxisSpacing: 4),
             itemCount: items.length,
             itemBuilder: (context, index) {
-              return GridTile(
-                  footer: GridTileBar(
-                    backgroundColor: const Color.fromARGB(115, 9, 9, 9),
-                    title: Text(items[index]['title']!),
-                    trailing: IconButton(
-                      icon: Icon(
-                        items[index]['isFavorited']
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: Colors.red,
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => OpenBook(
+                                title: items[index]['title']!,
+                                image: items[index]['image']!,
+                                description: items[index]['description']!,
+                              )));
+                },
+                child: GridTile(
+                  
+                    footer: GridTileBar(
+                      backgroundColor: const Color.fromARGB(115, 9, 9, 9),
+                      title: Text(items[index]['title']!),
+                      trailing: IconButton(
+                        icon: Icon(
+                          items[index]['isFavorited']
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: Colors.red,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            items[index]['isFavorited'] =
+                                !items[index]['isFavorited'];
+                          });
+                          if (items[index]['isFavorited'] == false) {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text('Removed from favorite'),
+                              duration: Duration(milliseconds: 400),
+                              backgroundColor:
+                                  Color.fromARGB(255, 103, 114, 157),
+                            ));
+                          } else {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text('Added to favorite'),
+                              duration: Duration(milliseconds: 400),
+                              backgroundColor:
+                                  Color.fromARGB(255, 103, 114, 157),
+                            ));
+                          }
+                        },
                       ),
-                      onPressed: () {
-                        setState(() {
-                          items[index]['isFavorited'] =
-                              !items[index]['isFavorited'];
-                        });
-                        if (items[index]['isFavorited'] == false) {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
-                            content: Text('Removed from favorite'),
-                            duration: Duration(milliseconds: 400),
-                            backgroundColor: Color.fromARGB(255, 103, 114, 157), 
-                          ));
-                        } else {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
-                            content: Text('Added to favorite'),
-                            duration: Duration(milliseconds: 400),
-                          backgroundColor: Color.fromARGB(255, 103, 114, 157), 
-                          ));
-                        }
-                      },
                     ),
-                  ),
-                  child: Image.network(
-                    items[index]['image']!,
-                    fit: BoxFit.fill,
-                    errorBuilder: (BuildContext context, Object exception,
-                        StackTrace? stackTrace) {
-                      return const Text('Error loading image');
-                    },
-                    loadingBuilder: (BuildContext context, Widget child,
-                        ImageChunkEvent? loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const CircularProgressIndicator();
-                    },
-                  ));
+                    child: Image.network(
+                      items[index]['image']!,
+                      fit: BoxFit.fill,
+                      errorBuilder: (BuildContext context, Object exception,
+                          StackTrace? stackTrace) {
+                        return const Text('Error loading image');
+                      },
+                      loadingBuilder: (BuildContext context, Widget child,
+                          ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const CircularProgressIndicator();
+                      },
+                    )),
+              );
             }));
   }
 }
